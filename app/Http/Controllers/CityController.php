@@ -27,7 +27,11 @@ class CityController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255'
+            'name' => 'required|string|max:255',
+            'favorite' => 'boolean',
+        ], [
+            'name.required' => 'The name field is required.',
+            'favorite.boolean' => 'The favorite field must be a boolean value.',
         ]);
 
         if ($validator->fails()) {
@@ -35,6 +39,7 @@ class CityController extends Controller
         }
 
         $cityName = $request->input('name');
+        $favoriteCity = $request->input('favorite');
 
         $geoResponse = Http::get("http://api.geonames.org/searchJSON", [
             'q' => $cityName,
@@ -42,11 +47,20 @@ class CityController extends Controller
             'username' => $this->geonamesUsername
         ]);
         if ($geoResponse->successful() && $geoResponse['totalResultsCount'] > 0) {
+
+        try {
             DB::table('cities')->insert([
                 'name' => $cityName,
+                'favorite' => $favoriteCity,
                 'created_at' => Carbon::now(),
             ]);
-            return response()->json(['message' => 'City added successfully' 201);
+            return response()->json(['message' => 'City added successfully'], 201);
+        } catch (\Illuminate\Database\QueryException $e) {
+           if ($e->errorInfo[0] === '23505') {
+               return response()->json(['error' => 'City name already exists'], 400);
+           }
+           return response()->json(['error' => 'Failed to add city'], 500);
+        }
         } else {
             return response()->json(['message' => 'City does not exist'], 404);
         }
@@ -66,7 +80,11 @@ class CityController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255'
+            'name' => 'required|string|max:255',
+            'favorite' => 'boolean',
+        ], [
+            'name.required' => 'The name field is required.',
+            'favorite.boolean' => 'The favorite field must be a boolean value.',
         ]);
 
         if ($validator->fails()) {
@@ -88,6 +106,7 @@ class CityController extends Controller
 
         if ($geoResponse->successful() && $geoResponse['totalResultsCount'] > 0) {
             $city->name = htmlspecialchars($cityName, ENT_QUOTES, 'UTF-8');
+            $city->favorite = $request->input('favorite');
             $city->save();
             return response()->json(['message' => 'City updated successfully', 'city' => $city]);
         } else {

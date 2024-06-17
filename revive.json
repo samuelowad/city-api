@@ -1,0 +1,8 @@
+{
+    "command": "php artisan serve",
+    "ignoreDirectories": ["vendor", "tmp"],
+    "monitorFileExt": [".php"],
+    "ignoreFileNameEndsWith": ["_test.go"],
+    "restartDelaySeconds": 0,
+    "verbosityLevel": 2
+}
