@@ -29,6 +29,7 @@ class CityController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'favorite' => 'boolean',
+            'temperature' => 'nullable|numeric',
         ], [
             'name.required' => 'The name field is required.',
             'favorite.boolean' => 'The favorite field must be a boolean value.',
@@ -40,6 +41,7 @@ class CityController extends Controller
 
         $cityName = $request->input('name');
         $favoriteCity = $request->input('favorite');
+        $temperature = $request->input('temperature');
 
         $geoResponse = Http::get("http://api.geonames.org/searchJSON", [
             'q' => $cityName,
@@ -52,6 +54,7 @@ class CityController extends Controller
             DB::table('cities')->insert([
                 'name' => $cityName,
                 'favorite' => $favoriteCity,
+                'temperature' => $temperature,
                 'created_at' => Carbon::now(),
             ]);
             return response()->json(['message' => 'City added successfully'], 201);
@@ -82,6 +85,7 @@ class CityController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'favorite' => 'boolean',
+            'temperature' => 'nullable|numeric',
         ], [
             'name.required' => 'The name field is required.',
             'favorite.boolean' => 'The favorite field must be a boolean value.',
@@ -107,6 +111,7 @@ class CityController extends Controller
         if ($geoResponse->successful() && $geoResponse['totalResultsCount'] > 0) {
             $city->name = htmlspecialchars($cityName, ENT_QUOTES, 'UTF-8');
             $city->favorite = $request->input('favorite');
+            $city->temperature = $request->input('temperature');
             $city->save();
             return response()->json(['message' => 'City updated successfully', 'city' => $city]);
         } else {

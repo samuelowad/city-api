@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name')->unique();;
             $table->boolean('favorite')->default(false);
+            $table->float('temperature')->nullable();
             $table->timestamps();
         });
     }
